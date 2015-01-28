@@ -69,6 +69,11 @@ public class GitProject implements IProject {
 	}
 
 	@Override
+	public void resetProject() {
+		String commandRet=CommandLine.execute("git reset --hard head",new File(new File(ProjectFactory.getRootPath(),projectName),projectPath));
+	}
+
+	@Override
 	public File getProjectSourcePath() {
 		return new File(new File(ProjectFactory.getRootPath(),projectName),projectPath);
 	}

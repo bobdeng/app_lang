@@ -6,6 +6,7 @@ public class StringRes {
 	private boolean array;
 	private boolean comment;
 	private String value;
+	private String lang;
 	public String getKey() {
 		return key;
 	}
@@ -25,16 +26,25 @@ public class StringRes {
 		this.value = value;
 	}
 	
-	@Override
-	public String toString() {
-		return "StringRes [key=" + key + ", array=" + array + ", comment="
-				+ comment + ", value=" + value + "]";
-	}
 	public boolean isComment() {
 		return comment;
 	}
 	public void setComment(boolean comment) {
 		this.comment = comment;
+	}
+	public String getLang() {
+		if(lang==null){
+			return value;
+		}
+		return lang;
+	}
+	public void setLang(String lang) {
+		this.lang = lang;
+	}
+	@Override
+	public String toString() {
+		return "StringRes [key=" + key + ", array=" + array + ", comment="
+				+ comment + ", value=" + value + ", lang=" + lang + "]\n";
 	}
 	
 }

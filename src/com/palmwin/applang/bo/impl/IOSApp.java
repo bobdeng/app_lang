@@ -22,11 +22,6 @@ public class IOSApp implements IApp {
 		this.path = path;
 	}
 
-	@Override
-	public Set<String> getKeys() {
-		// TODO Auto-generated method stub
-		return null;
-	}
 
 	@Override
 	public Map<String, StringRes> getLang(String lang) {

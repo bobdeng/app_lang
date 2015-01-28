@@ -7,8 +7,6 @@ import com.palmwin.applang.model.StringRes;
 
 public interface IApp {
 
-	//读取App所有的语言Keys
-	public Set<String> getKeys();
 	//获取指定语言的值，表示默认语言
 	public Map<String,StringRes> getLang(String lang);
 	//把语言写入磁盘

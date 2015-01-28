@@ -8,6 +8,7 @@ public interface IProject {
 	public void setProjectName(String name);
 	public void setProjectPath(String path);
 	public void commitProject();
+	public void resetProject();
 	public File getProjectSourcePath();
 
 }

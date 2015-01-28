@@ -34,31 +34,31 @@ public class AndroidApp implements IApp {
 		this.path = path;
 	}
 
-	@Override
-	public Set<String> getKeys() {
-		File resFolder = new File(path, "res");
-		File[] valuesFolders = resFolder.listFiles(new FilenameFilter() {
-
-			@Override
-			public boolean accept(File dir, String name) {
-				return name.startsWith("values");
-			}
-		});
-		Set<String> keys = new HashSet<String>();
-		for (File valuesFolder : valuesFolders) {
-			SAXReader xmlReader = new SAXReader();
-			try {
-				Document doc = xmlReader.read(new File(valuesFolder,
-						"strings.xml"));
-				List<Element> elements = doc.getRootElement().elements();
-				for (Element e : elements) {
-					keys.add(e.attributeValue("name"));
-				}
-			} catch (DocumentException e) {
-			}
-		}
-		return keys;
-	}
+//	@Override
+//	public Set<String> getKeys() {
+//		File resFolder = new File(path, "res");
+//		File[] valuesFolders = resFolder.listFiles(new FilenameFilter() {
+//
+//			@Override
+//			public boolean accept(File dir, String name) {
+//				return name.startsWith("values");
+//			}
+//		});
+//		Set<String> keys = new HashSet<String>();
+//		for (File valuesFolder : valuesFolders) {
+//			SAXReader xmlReader = new SAXReader();
+//			try {
+//				Document doc = xmlReader.read(new File(valuesFolder,
+//						"strings.xml"));
+//				List<Element> elements = doc.getRootElement().elements();
+//				for (Element e : elements) {
+//					keys.add(e.attributeValue("name"));
+//				}
+//			} catch (DocumentException e) {
+//			}
+//		}
+//		return keys;
+//	}
 
 	private File getXmlFile(String lang) {
 		File resFolder = new File(path, "res");
@@ -69,8 +69,27 @@ public class AndroidApp implements IApp {
 
 	@Override
 	public Map<String, StringRes> getLang(String lang) {
+		Map<String,StringRes> ret=getStrings(null,null);
+		if(lang==null){
+			return ret;
+		}
+		return getStrings(ret,lang);
+		
+	}
+	private StringRes getRes(Map<String,StringRes> resource,String key){
+		StringRes r =resource.get(key);
+		if(r==null){
+			return new StringRes();
+		}else{
+			return r;
+		}
+	}
+	private Map<String,StringRes> getStrings(Map<String,StringRes> defaultResource,String lang){
 		SAXReader xmlReader = new SAXReader();
-		Map<String, StringRes> ret = new LinkedHashMap<String, StringRes>();
+		if(defaultResource==null)
+		{
+			defaultResource = new LinkedHashMap<String, StringRes>();
+		}
 		try {
 			Document doc = xmlReader.read(getXmlFile(lang));
 			for (int i = 0; i < doc.getRootElement().nodeCount(); i++) {
@@ -78,12 +97,17 @@ public class AndroidApp implements IApp {
 
 				if (node.getNodeType() == Node.ELEMENT_NODE) {
 					Element e = (Element) node;
-					StringRes r = new StringRes();
+					StringRes r = getRes(defaultResource,e.attributeValue("name"));
 					r.setKey(e.attributeValue("name"));
-					ret.put(e.attributeValue("name"), r);
+					defaultResource.put(e.attributeValue("name"), r);
 					if (e.getName().equals("string")) {
 						r.setArray(false);
-						r.setValue(e.getText());
+						if(lang==null)
+						{
+							r.setValue(e.getText());
+						}else{
+							r.setLang(e.getText());
+						}
 					} else {
 						if (e.getName().equals("string-array")) {
 							r.setArray(true);
@@ -100,19 +124,25 @@ public class AndroidApp implements IApp {
 								System.out.println("item is null :"
 										+ r.getKey());
 							}
-							r.setValue(sbItems.toString());
+							if(lang==null)
+							{
+								r.setValue(sbItems.toString());
+							}else{
+								r.setLang(sbItems.toString());
+							}
 						} else {
 							System.out.println("other" + e);
 						}
 
 					}
 				}
-				if (node.getNodeType() == Node.COMMENT_NODE) {
+				//只有缺省的资源，需要保存注释
+				if (lang==null && node.getNodeType() == Node.COMMENT_NODE) {
 					Comment comment = (Comment) node;
 					StringRes r = new StringRes();
 					r.setValue(comment.getText());
 					r.setComment(true);
-					ret.put(r.getValue(), r);
+					defaultResource.put(r.getValue(), r);
 				}
 
 			}
@@ -120,7 +150,7 @@ public class AndroidApp implements IApp {
 			// TODO Auto-generated catch block
 			// e.printStackTrace();
 		}
-		return ret;
+		return defaultResource;
 	}
 
 	@Override
@@ -138,7 +168,7 @@ public class AndroidApp implements IApp {
 				if (res.isArray()) {
 					Element child = root.addElement("string-array");
 					child.add(new DOMAttribute(new QName("name"), res.getKey()));
-					String[] items = res.getValue().split("\\|\\|");
+					String[] items = (lang==null?res.getValue():res.getLang()).split("\\|\\|");
 					for (String item : items) {
 						Element eItem = child.addElement("item");
 						eItem.setText(item);
@@ -147,7 +177,7 @@ public class AndroidApp implements IApp {
 				} else {
 					Element child = root.addElement("string");
 					child.add(new DOMAttribute(new QName("name"), res.getKey()));
-					child.setText(res.getValue());
+					child.setText(lang==null?res.getValue():res.getLang());
 				}
 			}
 
